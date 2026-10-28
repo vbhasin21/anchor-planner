@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6fed">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Anchor Daily Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d2433;--mute:#667085;--line:#e4e0d6;--accent:#2f6fed;--ok:#1f9d55;--warn:#e08a00;--bad:#d92d20;--okbg:#e6f6ec;--badbg:#fdeceb;--accbg:#e8efff;--warnbg:#fff3dc}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--card:#1c212c;--ink:#eef1f6;--mute:#9aa4b6;--line:#2c3342;--accent:#6c9cff;--ok:#4cc38a;--warn:#f0a93a;--bad:#ff6b5e;--okbg:#14301f;--badbg:#3a1a18;--accbg:#1b2a4a;--warnbg:#3a2d12;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151c;--card:#1c212c;--ink:#eef1f6;--mute:#9aa4b6;--line:#2c3342;--accent:#6c9cff;--ok:#4cc38a;--warn:#f0a93a;--bad:#ff6b5e;--okbg:#14301f;--badbg:#3a1a18;--accbg:#1b2a4a;--warnbg:#3a2d12;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding-bottom:84px}
+main{max-width:760px;margin:0 auto;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{margin:0}
+h2{font-size:1.05rem;margin:22px 0 8px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1;min-width:0}
+.mute{color:var(--mute);font-size:.9rem}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:9px 14px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.ok{background:var(--ok);border-color:var(--ok);color:#fff;font-weight:600}
+button.danger{color:var(--bad)}
+button.ghost{border-color:transparent;background:transparent;padding:6px 10px}
+button.big{padding:16px 22px;font-size:1.15rem;border-radius:14px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;max-width:100%}
+input[type=text],textarea{width:100%}
+label{display:block;font-size:.85rem;color:var(--mute);margin:8px 0 3px}
+.form{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));align-items:end}
+.form .full{grid-column:1/-1}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;gap:2px;padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));z-index:5}
+nav button{flex:1;max-width:130px;border:0;background:transparent;padding:8px 2px;font-size:.8rem;color:var(--mute)}
+nav button.on{color:var(--accent);background:var(--accbg);font-weight:700}
+nav button b{display:block;font-size:1.25rem;line-height:1.1}
+.clock{font-size:2.6rem;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.now{border:2px solid var(--accent);background:var(--accbg)}
+.now.late{border-color:var(--bad);background:var(--badbg)}
+.now.clear{border-color:var(--ok);background:var(--okbg)}
+.now .label{font-weight:800;font-size:.8rem;letter-spacing:.1em;color:var(--accent)}
+.now.late .label{color:var(--bad)}
+.now .title{font-size:1.5rem;font-weight:800;margin:2px 0}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.tl{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.tl:last-child{border:0}
+.tl .t{width:74px;flex:none;font-variant-numeric:tabular-nums;font-weight:600}
+.badge{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:99px;background:var(--accbg);color:var(--accent);font-weight:700}
+.badge.ok{background:var(--okbg);color:var(--ok)}
+.badge.bad{background:var(--badbg);color:var(--bad)}
+.badge.warn{background:var(--warnbg);color:var(--warn)}
+.chk{width:30px;height:30px;border-radius:8px;flex:none;padding:0;font-size:1.1rem;line-height:1}
+.chk.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.done .txt{text-decoration:line-through;color:var(--mute)}
+.days{display:flex;gap:4px;flex-wrap:wrap}
+.days label{display:inline-flex;margin:0;gap:0}
+.days input{display:none}
+.days span{padding:6px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--ink);font-size:.85rem}
+.days input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff}
+.overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(10,14,24,.88)}
+.overlay.show{display:flex}
+.sheet{background:var(--card);border-radius:18px;padding:22px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
+.alarm{text-align:center;animation:pulse 1s infinite alternate}
+@keyframes pulse{from{box-shadow:0 0 0 0 rgba(217,45,32,.7)}to{box-shadow:0 0 0 22px rgba(217,45,32,0)}}
+.focus .step{font-size:2rem;font-weight:800;margin:14px 0;line-height:1.2}
+.focus .timer{font-size:4rem;font-weight:800;font-variant-numeric:tabular-nums}
+.focus .timer.over{color:var(--bad)}
+.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;z-index:30;display:none}
+.steprow{display:flex;gap:6px;margin-bottom:6px}
+.steprow input[type=number]{width:74px}
+.empty{color:var(--mute);text-align:center;padding:14px}
+.rule{border-left:4px solid var(--warn);padding-left:10px}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<div class="overlay" id="alarm"></div>
+<div class="overlay" id="focus"></div>
+<div class="overlay" id="modal"></div>
+<div class="overlay" id="confirm" style="z-index:40"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 9);
+const pad = n => String(n).padStart(2, '0');
+const dkey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (k, n) => { const d = parseKey(k); d.setDate(d.getDate() + n); return dkey(d); };
+const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const fmtT = min => { min = Math.round(min); const h = Math.floor(min / 60) % 24, m = min % 60; return `${h % 12 || 12}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`; };
+const fmtDur = min => { min = Math.max(0, Math.round(min)); const h = Math.floor(min / 60), m = min % 60; return h ? `${h}h ${m}m` : `${m}m`; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const today = () => dkey();
+const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60; };
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const longDate = k => parseKey(k).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+
+/* ---------- state ---------- */
+const KEY = 'anchor.v1';
+const defaults = () => ({
+  routines: [], appts: [], todos: [], log: {}, snoozed: [], fired: { date: '', keys: {} },
+  settings: { sound: true, strict: true, apptRemind: [30, 10, 0] }
+});
+let S = defaults();
+try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(defaults(), JSON.parse(raw)); } catch (e) { console.warn(e); }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Could not save - storage blocked!'); } };
+let view = 'today';
+
+/* ---------- domain ---------- */
+const logFor = k => (S.log[k] ||= { steps: {}, skips: {} });
+const stepDone = (rid, sid, k) => !!S.log[k]?.steps?.[rid]?.[sid];
+const stepSkipped = (rid, sid, k) => S.log[k]?.skips?.[rid]?.[sid];
+const stepHandled = (rid, sid, k) => stepDone(rid, sid, k) || !!stepSkipped(rid, sid, k);
+const routineDone = (r, k) => r.steps.length > 0 && r.steps.every(s => stepHandled(r.id, s.id, k));
+const routineDur = r => r.steps.reduce((a, s) => a + s.mins, 0);
+
+function agenda(k) {
+  const dow = parseKey(k).getDay(), items = [];
+  S.routines.filter(r => r.days.includes(dow)).forEach(r => items.push({
+    type: 'routine', id: r.id, title: r.name, start: toMin(r.time), end: toMin(r.time) + routineDur(r), done: routineDone(r, k)
+  }));
+  S.appts.filter(a => a.date === k).forEach(a => items.push({
+    type: 'appt', id: a.id, title: a.title, start: toMin(a.time), end: toMin(a.time) + (a.dur || 30), done: !!a.done, notes: a.notes
+  }));
+  S.todos.filter(t => t.date === k && t.time).forEach(t => items.push({
+    type: 'todo', id: t.id, title: t.text, start: toMin(t.time), end: toMin(t.time) + 15, done: !!t.done
+  }));
+  return items.sort((a, b) => a.start - b.start);
+}
+
+function progress(k) {
+  let total = 0, done = 0;
+  S.routines.filter(r => r.days.includes(parseKey(k).getDay())).forEach(r => r.steps.forEach(s => { total++; if (stepDone(r.id, s.id, k)) done++; }));
+  S.appts.filter(a => a.date === k).forEach(a => { total++; if (a.done) done++; });
+  S.todos.filter(t => t.date === k).forEach(t => { total++; if (t.done) done++; });
+  return { total, done, pct: total ? Math.round(done / total * 100) : 0 };
+}
+
+function dayClean(k) {
+  const rs = S.routines.filter(r => r.days.includes(parseKey(k).getDay()));
+  if (!rs.length) return null;
+  return rs.every(r => r.steps.every(s => stepDone(r.id, s.id, k)));
+}
+function streak() {
+  let k = today(), n = 0;
+  if (dayClean(k) === false) k = addDays(k, -1);
+  for (let i = 0; i < 400; i++, k = addDays(k, -1)) {
+    const c = dayClean(k);
+    if (c === null) continue;
+    if (!c) break;
+    n++;
+  }
+  return n;
+}
+
+/* ---------- audio / alarms ---------- */
+let actx = null, beepTimer = null;
+function unlockAudio() { try { actx ||= new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) { } }
+document.addEventListener('pointerdown', unlockAudio, { once: true });
+function beep(n = 2) {
+  if (!S.settings.sound || !actx) return;
+  for (let i = 0; i < n; i++) {
+    const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * .35;
+    o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.35, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .28);
+    o.start(t); o.stop(t + .3);
+  }
+}
+let alarmQ = [], alarmCur = null;
+function pushAlarm(a) { alarmQ.push(a); if (!alarmCur) nextAlarm(); }
+function nextAlarm() {
+  clearInterval(beepTimer);
+  alarmCur = alarmQ.shift();
+  const el = $('#alarm');
+  if (!alarmCur) { el.classList.remove('show'); return; }
+  const a = alarmCur, canSnooze = !S.settings.strict && (a.snz || 0) < 2;
+  el.innerHTML = `<div class="sheet alarm">
+    <div class="badge bad">${a.type === 'routine' ? 'ROUTINE' : a.type === 'appt' ? 'APPOINTMENT' : 'TASK'}</div>
+    <h1 style="font-size:2rem;margin:12px 0">${esc(a.title)}</h1>
+    <p style="font-size:1.25rem;margin:0 0 18px">${esc(a.msg)}</p>
+    <div style="display:grid;gap:10px">
+      ${a.type === 'routine' ? `<button class="primary big" data-act="alarmStart">Start routine now</button>` : ''}
+      <button class="${a.type === 'routine' ? '' : 'primary'} big" data-act="alarmAck">Got it</button>
+      ${canSnooze ? `<button data-act="alarmSnooze">Snooze 5 min (${2 - (a.snz || 0)} left)</button>` : `<div class="mute">Strict mode: no snoozing.</div>`}
+    </div></div>`;
+  el.classList.add('show');
+  beep(3); beepTimer = setInterval(() => beep(3), 4000);
+  try { navigator.vibrate?.([300, 150, 300]); } catch (e) { }
+  try {
+    if (window.Notification && Notification.permission === 'granted') {
+      const opts = { body: a.msg, requireInteraction: true, vibrate: [300, 150, 300], tag: 'anchor-alarm', icon: 'icon-192.png' };
+      if (swReg) swReg.showNotification(a.title, opts); else new Notification(a.title, opts);
+    }
+  } catch (e) { }
+}
+
+function offsetsFor(type) {
+  return type === 'appt' ? S.settings.apptRemind : type === 'routine' ? [5, 0] : [0];
+}
+function checkAlarms() {
+  const k = today(), n = nowMin();
+  if (S.fired.date !== k) { S.fired = { date: k, keys: {} }; save(); }
+  let dirty = false;
+  agenda(k).forEach(it => {
+    if (it.done) return;
+    const offs = offsetsFor(it.type).slice().sort((a, b) => b - a);
+    const due = offs.filter(o => n >= it.start - o && !S.fired.keys[`${it.type}${it.id}${o}`]);
+    if (!due.length) return;
+    due.forEach(o => S.fired.keys[`${it.type}${it.id}${o}`] = 1); dirty = true;
+    const o = Math.min(...due), late = n - it.start;
+    if (late > Math.max(it.end - it.start, 30) + 60) return; // stale: app was closed, don't spam
+    const msg = o > 0 ? `Starts in ${o} min (${fmtT(it.start)}). Get ready.` : late > 2 ? `It was due at ${fmtT(it.start)} - ${fmtDur(late)} ago. Do it now.` : `It is ${fmtT(it.start)}. Time to start.`;
+    pushAlarm({ type: it.type, id: it.id, title: it.title, msg });
+  });
+  if (dirty) save();
+  const t = Date.now(), due = S.snoozed.filter(s => s.until <= t);
+  if (due.length) { S.snoozed = S.snoozed.filter(s => s.until > t); save(); due.forEach(pushAlarm); }
+}
+
+/* ---------- focus mode (routine runner) ---------- */
+let run = null;
+function startRun(rid) {
+  const r = S.routines.find(x => x.id === rid); if (!r) return;
+  const idx = r.steps.findIndex(s => !stepHandled(r.id, s.id, today()));
+  if (idx < 0) { toast('That routine is already finished today.'); return; }
+  run = { rid, idx, t0: Date.now(), beeped: false, skipping: false };
+  unlockAudio(); drawRun();
+}
+function drawRun() {
+  const el = $('#focus');
+  if (!run) { el.classList.remove('show'); render(); return; }
+  const r = S.routines.find(x => x.id === run.rid), s = r.steps[run.idx];
+  if (!s) {
+    el.innerHTML = `<div class="sheet focus" style="text-align:center"><div style="font-size:3rem">&#127881;</div><h1>${esc(r.name)} complete</h1>
+      <p class="mute">Every step handled. That is exactly how streaks get built.</p><button class="primary big" data-act="runClose">Back to today</button></div>`;
+    el.classList.add('show'); beep(3); return;
+  }
+  el.innerHTML = `<div class="sheet focus" style="text-align:center">
+    <div class="mute">${esc(r.name)} &middot; step ${run.idx + 1} of ${r.steps.length}</div>
+    <div class="bar" style="margin:8px 0"><i style="width:${run.idx / r.steps.length * 100}%"></i></div>
+    <div class="step">${esc(s.text)}</div>
+    <div class="timer" id="runTimer">--:--</div>
+    <div class="mute">Planned: ${s.mins} min. Do ONLY this step.</div>
+    ${run.skipping ? `<form data-form="runSkip" style="margin-top:16px"><label>Why skip? (required - be honest)</label>
+        <input type="text" name="why" autocomplete="off" required minlength="3" autofocus>
+        <div class="row" style="margin-top:10px"><button class="danger grow">Confirm skip</button><button type="button" class="grow" data-act="runSkipCancel">Cancel</button></div></form>`
+      : `<div style="display:grid;gap:10px;margin-top:18px"><button class="ok big" data-act="runDone">Done &#10003;</button>
+        <div class="row"><button class="grow" data-act="runSkip">Skip...</button><button class="grow" data-act="runExit">Pause / exit</button></div></div>`}
+  </div>`;
+  el.classList.add('show'); updateRun();
+}
+function updateRun() {
+  if (!run) return;
+  const r = S.routines.find(x => x.id === run.rid), s = r?.steps[run.idx], t = $('#runTimer');
+  if (!s || !t) return;
+  const left = s.mins * 60000 - (Date.now() - run.t0), over = left < 0, a = Math.abs(Math.floor(left / 1000));
+  t.textContent = `${over ? '+' : ''}${pad(Math.floor(a / 60))}:${pad(a % 60)}`;
+  t.classList.toggle('over', over);
+  if (over && !run.beeped) { run.beeped = true; beep(3); }
+}
+function runAdvance(done, why) {
+  const r = S.routines.find(x => x.id === run.rid), s = r.steps[run.idx], l = logFor(today());
+  if (done) (l.steps[r.id] ||= {})[s.id] = true; else (l.skips[r.id] ||= {})[s.id] = why;
+  save();
+  run.idx++; run.t0 = Date.now(); run.beeped = false; run.skipping = false;
+  while (r.steps[run.idx] && stepHandled(r.id, r.steps[run.idx].id, today())) run.idx++;
+  drawRun();
+}
+
+/* ---------- views ---------- */
+const tabs = [['today', '&#9201;', 'Today'], ['todo', '&#9989;', 'To-do'], ['routines', '&#128260;', 'Routines'], ['appts', '&#128197;', 'Appts'], ['settings', '&#9881;', 'Settings']];
+function renderNav() {
+  $('#nav').innerHTML = tabs.map(([id, ic, nm]) => `<button class="${view === id ? 'on' : ''}" data-act="tab" data-id="${id}"><b>${ic}</b>${nm}</button>`).join('');
+}
+function render() {
+  renderNav();
+  $('#app').innerHTML = ({ today: vToday, todo: vTodo, routines: vRoutines, appts: vAppts, settings: vSettings })[view]();
+  updateNow();
+}
+
+const priLabel = { 3: ['MUST', 'bad'], 2: ['Should', 'warn'], 1: ['Could', ''] };
+function todoRow(t) {
+  const [pl, pc] = priLabel[t.pri] || priLabel[2];
+  return `<div class="row ${t.done ? 'done' : ''}" style="padding:8px 0;border-bottom:1px solid var(--line)">
+    <button class="chk ${t.done ? 'on' : ''}" data-act="toggleTodo" data-id="${t.id}" aria-label="Toggle done">${t.done ? '&#10003;' : ''}</button>
+    <div class="grow"><span class="txt">${esc(t.text)}</span><br>
+      <span class="badge ${pc}">${pl}</span> ${t.time ? `<span class="badge">${fmtT(toMin(t.time))}</span>` : ''}</div>
+    <button class="ghost danger" data-act="delTodo" data-id="${t.id}" aria-label="Delete">&#10005;</button></div>`;
+}
+const sortTodos = a => a.slice().sort((x, y) => (x.done - y.done) || ((y.pri || 2) - (x.pri || 2)) || String(x.time || '99').localeCompare(String(y.time || '99')));
+function todoForm(date) {
+  return `<form class="card form" data-form="addTodo">
+    <div class="full"><label>New to-do</label><input type="text" name="text" required autocomplete="off" placeholder="What exactly needs doing?"></div>
+    <div><label>Date</label><input type="date" name="date" value="${date}" required></div>
+    <div><label>Time (optional alarm)</label><input type="time" name="time"></div>
+    <div><label>Priority</label><select name="pri"><option value="3">MUST do</option><option value="2" selected>Should do</option><option value="1">Could do</option></select></div>
+    <button class="primary">Add</button></form>`;
+}
+
+function vToday() {
+  const k = today(), items = agenda(k), n = nowMin(), p = progress(k);
+  const todos = sortTodos(S.todos.filter(t => t.date === k));
+  const over = S.todos.filter(t => t.date < k && !t.done);
+  const tom = agenda(addDays(k, 1));
+  const status = it => it.done ? ['Done', 'ok'] : n >= it.end ? ['MISSED', 'bad'] : n >= it.start ? ['NOW', 'warn'] : ['Upcoming', ''];
+  return `
+  <div class="row"><div class="grow"><div class="clock" id="clock"></div><div class="mute">${longDate(k)}</div></div>
+    <div style="text-align:right"><div style="font-size:1.6rem;font-weight:800">&#128293; ${streak()}</div><div class="mute">day streak</div></div></div>
+  <div id="nowcard" style="margin-top:12px"></div>
+  <div class="card"><div class="row"><div class="grow"><b>Today's progress</b> <span class="mute">${p.done}/${p.total}</span></div><b>${p.pct}%</b></div>
+    <div class="bar" style="margin-top:8px"><i style="width:${p.pct}%"></i></div></div>
+  ${over.length ? `<div class="card rule"><b>${over.length} overdue to-do${over.length > 1 ? 's' : ''}</b> <span class="mute">- nothing disappears until you finish it or drop it.</span>
+    ${sortTodos(over).map(t => `<div class="row" style="padding:6px 0"><div class="grow">${esc(t.text)} <span class="mute">(${longDate(t.date)})</span></div>
+      <button data-act="moveToday" data-id="${t.id}">Do today</button><button class="ghost danger" data-act="delTodo" data-id="${t.id}">&#10005;</button></div>`).join('')}</div>` : ''}
+  <h2>Schedule</h2>
+  <div class="card">${items.filter(i => i.type !== 'todo').length ? items.filter(i => i.type !== 'todo').map(it => {
+    const [sl, sc] = status(it);
+    return `<div class="tl"><div class="t">${fmtT(it.start)}</div><div class="grow"><b>${esc(it.title)}</b>
+      <div><span class="badge ${sc}">${sl}</span> <span class="badge">${it.type === 'routine' ? 'Routine ' + fmtDur(it.end - it.start) : 'Appointment'}</span></div>
+      ${it.notes ? `<div class="mute">${esc(it.notes)}</div>` : ''}</div>
+      ${it.done ? '' : it.type === 'routine' ? `<button class="primary" data-act="startRoutine" data-id="${it.id}">${n >= it.start ? 'Start' : 'Early start'}</button>` : `<button data-act="apptDone" data-id="${it.id}">Attended</button>`}</div>`;
+  }).join('') : `<div class="empty">Nothing scheduled. Add routines and appointments.</div>`}</div>
+  <h2>To-do today</h2>
+  ${todoForm(k)}
+  <div class="card">${todos.length ? todos.map(todoRow).join('') : `<div class="empty">No to-dos for today.</div>`}</div>
+  <h2>Tomorrow preview</h2>
+  <div class="card">${tom.length ? tom.map(i => `<div class="tl"><div class="t">${fmtT(i.start)}</div><div class="grow">${esc(i.title)}</div></div>`).join('') : `<div class="empty">Nothing scheduled yet.</div>`}</div>`;
+}
+
+function vTodo() {
+  const k = today(), open = S.todos.filter(t => !t.done);
+  const up = open.filter(t => t.date > k), over = open.filter(t => t.date < k), now = S.todos.filter(t => t.date === k);
+  const byDate = {}; up.forEach(t => (byDate[t.date] ||= []).push(t));
+  const doneOld = S.todos.filter(t => t.done && t.date < k).slice(-8).reverse();
+  return `<h2 style="margin-top:4px">Daily to-do list</h2>${todoForm(k)}
+  ${over.length ? `<h2>Overdue</h2><div class="card rule">${sortTodos(over).map(t => todoRow(t) + `<div style="text-align:right"><button data-act="moveToday" data-id="${t.id}">Move to today</button></div>`).join('')}</div>` : ''}
+  <h2>Today</h2><div class="card">${now.length ? sortTodos(now).map(todoRow).join('') : `<div class="empty">Nothing for today.</div>`}</div>
+  ${Object.keys(byDate).sort().map(d => `<h2>${longDate(d)}</h2><div class="card">${sortTodos(byDate[d]).map(todoRow).join('')}</div>`).join('')}
+  ${doneOld.length ? `<h2>Recently finished</h2><div class="card">${doneOld.map(todoRow).join('')}</div>` : ''}`;
+}
+
+function vRoutines() {
+  const k = today();
+  return `<div class="row"><h2 class="grow" style="margin:4px 0">Daily routines</h2><button class="primary" data-act="editRoutine" data-id="">+ New routine</button></div>
+  <p class="mute">Each routine is a timed checklist that starts with an alarm and runs one step at a time. Skipping a step requires a written reason.</p>
+  ${S.routines.length ? S.routines.map(r => `<div class="card"><div class="row"><div class="grow"><b style="font-size:1.1rem">${esc(r.name)}</b>
+      <div class="mute">${fmtT(toMin(r.time))} &middot; ${fmtDur(routineDur(r))} &middot; ${r.days.length === 7 ? 'Every day' : r.days.map(d => DAYS[d]).join(', ')}</div></div>
+      ${r.days.includes(parseKey(k).getDay()) ? `<button class="primary" data-act="startRoutine" data-id="${r.id}">Start</button>` : ''}
+      <button data-act="editRoutine" data-id="${r.id}">Edit</button></div>
+      <ol style="margin:8px 0 0;padding-left:20px">${r.steps.map(s => `<li>${esc(s.text)} <span class="mute">${s.mins}m</span></li>`).join('')}</ol></div>`).join('')
+      : `<div class="card empty">No routines yet.<br><br><button class="primary" data-act="starters">Add starter routines (morning, evening)</button></div>`}`;
+}
+
+function vAppts() {
+  const k = today(), up = S.appts.filter(a => a.date >= k).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const past = S.appts.filter(a => a.date < k).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)).slice(0, 10);
+  const row = a => `<div class="card"><div class="row"><div class="grow"><b>${esc(a.title)}</b>
+    <div class="mute">${longDate(a.date)} &middot; ${fmtT(toMin(a.time))} &middot; ${a.dur || 30} min</div>${a.notes ? `<div>${esc(a.notes)}</div>` : ''}</div>
+    ${a.done ? '<span class="badge ok">Attended</span>' : a.date < k ? `<span class="badge bad">Missed?</span><button data-act="apptDone" data-id="${a.id}">Attended</button>` : `<button data-act="apptDone" data-id="${a.id}">Attended</button>`}
+    <button class="ghost danger" data-act="delAppt" data-id="${a.id}">&#10005;</button></div></div>`;
+  return `<h2 style="margin-top:4px">Appointments</h2>
+  <form class="card form" data-form="addAppt">
+    <div class="full"><label>What / who</label><input type="text" name="title" required autocomplete="off" placeholder="Dentist, meeting with..."></div>
+    <div><label>Date</label><input type="date" name="date" value="${k}" required></div>
+    <div><label>Time</label><input type="time" name="time" required></div>
+    <div><label>Length (min)</label><input type="number" name="dur" value="30" min="5" step="5"></div>
+    <div class="full"><label>Notes (address, what to bring)</label><input type="text" name="notes" autocomplete="off"></div>
+    <button class="primary">Add appointment</button></form>
+  <h2>Upcoming</h2>${up.length ? up.map(row).join('') : `<div class="card empty">No upcoming appointments.</div>`}
+  ${past.length ? `<h2>Past</h2>${past.map(row).join('')}` : ''}`;
+}
+
+function vSettings() {
+  const st = S.settings, perm = window.Notification ? Notification.permission : 'unsupported';
+  return `<h2 style="margin-top:4px">Settings</h2>
+  <div class="card"><b>Alarms</b>
+    <div class="row" style="margin-top:8px"><div class="grow">Desktop notifications <span class="mute">(${perm})</span></div><button data-act="notif">Enable</button></div>
+    <div class="row" style="margin-top:8px"><div class="grow">Alarm sound</div><input type="checkbox" data-set="sound" ${st.sound ? 'checked' : ''}></div>
+    <div class="row" style="margin-top:8px"><div class="grow">Strict mode <span class="mute">(no snoozing)</span></div><input type="checkbox" data-set="strict" ${st.strict ? 'checked' : ''}></div>
+    <label>Appointment reminders (minutes before)</label>
+    <div class="row">${[60, 30, 15, 10, 5, 0].map(m => `<label style="margin:0;display:flex;gap:4px;align-items:center"><input type="checkbox" data-rem="${m}" ${st.apptRemind.includes(m) ? 'checked' : ''}>${m === 0 ? 'At time' : m}</label>`).join('')}</div>
+    <div style="margin-top:12px"><button data-act="testAlarm">Test alarm</button></div>
+    <p class="mute">Alarms only ring while this page is open (a pinned tab or installed window works well). Keep sound on and click anywhere once after opening so the browser allows audio.</p></div>
+  <div class="card"><b>Backup</b><p class="mute">Data lives in this browser only. Copy a backup now and then and keep it in a note.</p>
+    <div class="row"><button data-act="export">Show backup text</button><button id="bkcopy" data-act="copyBackup" hidden>Copy</button></div>
+    <textarea id="bk" rows="4" hidden readonly style="margin-top:8px"></textarea>
+    <label for="bkin">Restore: paste backup text here</label><textarea id="bkin" rows="3"></textarea>
+    <div style="margin-top:8px"><button data-act="restorePaste">Restore backup</button></div></div>
+  <div class="card"><b>Danger zone</b><div style="margin-top:8px"><button class="danger" data-act="wipe">Erase everything</button></div></div>`;
+}
+
+/* ---------- Now card ---------- */
+function updateNow() {
+  const c = $('#clock'); if (c) c.textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  const el = $('#nowcard'); if (!el) return;
+  const k = today(), n = nowMin(), items = agenda(k).filter(i => !i.done);
+  const cur = items.find(i => n >= i.start && n < i.end), missed = items.filter(i => n >= i.end && i.type !== 'todo');
+  const next = items.find(i => i.start > n);
+  const act = i => i.type === 'routine' ? `<button class="primary big" data-act="startRoutine" data-id="${i.id}">Start routine</button>`
+    : i.type === 'appt' ? `<button class="big" data-act="apptDone" data-id="${i.id}">I'm here</button>` : `<button class="big ok" data-act="toggleTodo" data-id="${i.id}">Done</button>`;
+  let h;
+  if (cur) h = `<div class="card now"><div class="label">DO THIS NOW</div><div class="title">${esc(cur.title)}</div>
+    <div>Since ${fmtT(cur.start)} &middot; window ends in ${fmtDur(cur.end - n)}</div><div style="margin-top:10px">${act(cur)}</div></div>`;
+  else if (missed.length) { const m = missed[0]; h = `<div class="card now late"><div class="label">MISSED - FIX IT</div><div class="title">${esc(m.title)}</div>
+    <div>Was ${fmtT(m.start)}. Do it now or mark it handled.</div><div style="margin-top:10px">${act(m)}</div></div>`; }
+  else if (next) h = `<div class="card now"><div class="label">NEXT UP &middot; IN ${fmtDur(next.start - n)}</div><div class="title">${esc(next.title)}</div>
+    <div>${fmtT(next.start)}${next.type === 'appt' ? ' &middot; leave early enough!' : ''}</div></div>`;
+  else h = `<div class="card now clear"><div class="label" style="color:var(--ok)">ALL CLEAR</div><div class="title">Nothing left on the clock</div><div>Check your to-do list or rest. You earned it.</div></div>`;
+  if (el.dataset.h !== h) { el.innerHTML = h; el.dataset.h = h; }
+}
+
+/* ---------- actions ---------- */
+function toast(m) { const t = $('#toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(toast.id); toast.id = setTimeout(() => t.style.display = 'none', 2600); }
+
+const actions = {
+  tab: d => { view = d.id; render(); window.scrollTo(0, 0); },
+  toggleTodo: d => { const t = S.todos.find(x => x.id === d.id); t.done = !t.done; save(); render(); },
+  delTodo: d => ask('Delete this to-do?', () => { S.todos = S.todos.filter(x => x.id !== d.id); save(); render(); }),
+  confirmYes: () => { const f = pendingConfirm; pendingConfirm = null; $('#confirm').classList.remove('show'); f?.(); },
+  confirmNo: () => { pendingConfirm = null; $('#confirm').classList.remove('show'); },
+  moveToday: d => { S.todos.find(x => x.id === d.id).date = today(); save(); render(); },
+  apptDone: d => { S.appts.find(x => x.id === d.id).done = true; save(); render(); },
+  delAppt: d => ask('Delete this appointment?', () => { S.appts = S.appts.filter(x => x.id !== d.id); save(); render(); }),
+  startRoutine: d => startRun(d.id),
+  editRoutine: d => openRoutine(d.id),
+  starters: () => {
+    const all = [0, 1, 2, 3, 4, 5, 6];
+    S.routines.push(
+      { id: uid(), name: 'Morning launch', time: '07:30', days: all, steps: [['Drink water, take medication', 3], ['Wash up and get dressed', 15], ['Eat breakfast', 15], ['Review today screen: schedule + MUST to-dos', 5], ['Pack bag / keys / phone / wallet', 5]].map(([text, mins]) => ({ id: uid(), text, mins })) },
+      { id: uid(), name: 'Evening shutdown', time: '21:30', days: all, steps: [['Set out clothes and bag for tomorrow', 8], ['Plan tomorrow: add to-dos and appointments', 7], ['Tidy one area (10-minute reset)', 10], ['Meds, brush teeth, phone on charger', 8]].map(([text, mins]) => ({ id: uid(), text, mins })) });
+    save(); render();
+  },
+  alarmAck: () => { nextAlarm(); },
+  alarmStart: () => { const id = alarmCur.id; nextAlarm(); startRun(id); },
+  alarmSnooze: () => { S.snoozed.push({ ...alarmCur, snz: (alarmCur.snz || 0) + 1, msg: 'Snoozed alarm - do not snooze again.', until: Date.now() + 5 * 60000 }); save(); nextAlarm(); },
+  runDone: () => runAdvance(true),
+  runSkip: () => { run.skipping = true; drawRun(); },
+  runSkipCancel: () => { run.skipping = false; drawRun(); },
+  runExit: () => { run = null; drawRun(); },
+  runClose: () => { run = null; drawRun(); },
+  notif: () => { if (!window.Notification) return toast('Notifications not supported here'); Notification.requestPermission().then(() => render()); },
+  testAlarm: () => { unlockAudio(); pushAlarm({ type: 'todo', id: '', title: 'Test alarm', msg: 'If you can hear and see this, alarms work.' }); },
+  export: () => {
+    const box = $('#bk'); box.value = JSON.stringify(S); box.hidden = false; box.select();
+    $('#bkcopy').hidden = false;
+  },
+  copyBackup: () => { const box = $('#bk'); box.select(); navigator.clipboard?.writeText(box.value).then(() => toast('Backup copied. Paste it into a note.'), () => toast('Press Ctrl+C to copy the selected text')); },
+  restorePaste: () => {
+    try { S = Object.assign(defaults(), JSON.parse($('#bkin').value)); save(); render(); toast('Backup restored'); } catch (err) { toast('That is not a valid backup'); }
+  },
+  wipe: () => ask('Erase ALL routines, appointments, to-dos and history? This cannot be undone.', () => { S = defaults(); save(); render(); }),
+  addStep: () => addStepRow(),
+  delStep: (d, b) => b.closest('.steprow').remove(),
+  saveRoutine: () => saveRoutine(),
+  closeModal: () => $('#modal').classList.remove('show'),
+  delRoutine: d => ask('Delete this routine?', () => { S.routines = S.routines.filter(r => r.id !== d.id); save(); $('#modal').classList.remove('show'); render(); })
+};
+let pendingConfirm = null;
+function ask(msg, fn) {
+  pendingConfirm = fn;
+  $('#confirm').innerHTML = `<div class="sheet" style="text-align:center"><p style="font-size:1.2rem;margin-top:0">${esc(msg)}</p>
+    <div class="row"><button class="danger grow" data-act="confirmYes">Yes</button><button class="primary grow" data-act="confirmNo">Cancel</button></div></div>`;
+  $('#confirm').classList.add('show');
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) actions[b.dataset.act]?.(b.dataset, b, e); });
+
+document.addEventListener('submit', e => {
+  const f = e.target.closest('[data-form]'); if (!f) return; e.preventDefault();
+  const v = Object.fromEntries(new FormData(f));
+  if (f.dataset.form === 'addTodo') S.todos.push({ id: uid(), text: v.text.trim(), date: v.date, time: v.time || '', pri: +v.pri, done: false });
+  if (f.dataset.form === 'addAppt') S.appts.push({ id: uid(), title: v.title.trim(), date: v.date, time: v.time, dur: +v.dur || 30, notes: v.notes.trim(), done: false });
+  if (f.dataset.form === 'runSkip') return runAdvance(false, v.why.trim());
+  save(); render(); toast('Added');
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.set) { S.settings[t.dataset.set] = t.checked; save(); }
+  if (t.dataset.rem !== undefined) { const m = +t.dataset.rem, a = S.settings.apptRemind; S.settings.apptRemind = t.checked ? [...new Set([...a, m])] : a.filter(x => x !== m); save(); }
+  if (t.dataset.import !== undefined && t.files[0]) {
+    const fr = new FileReader();
+    fr.onload = () => { try { S = Object.assign(defaults(), JSON.parse(fr.result)); save(); render(); toast('Backup restored'); } catch (err) { toast('Not a valid backup file'); } };
+    fr.readAsText(t.files[0]);
+  }
+});
+
+/* ---------- routine editor ---------- */
+function addStepRow(s = { text: '', mins: 5 }) {
+  const d = document.createElement('div'); d.className = 'steprow';
+  d.innerHTML = `<input type="text" class="st" placeholder="Step (one clear action)" value="${esc(s.text)}"><input type="number" class="sm" min="1" value="${s.mins}" aria-label="Minutes"><button type="button" class="ghost danger" data-act="delStep">&#10005;</button>`;
+  $('#steps').appendChild(d);
+}
+function openRoutine(id) {
+  const r = S.routines.find(x => x.id === id) || { id: '', name: '', time: '08:00', days: [0, 1, 2, 3, 4, 5, 6], steps: [] };
+  $('#modal').innerHTML = `<div class="sheet" data-rid="${r.id}"><h3>${r.id ? 'Edit' : 'New'} routine</h3>
+    <label>Name</label><input type="text" id="rn" value="${esc(r.name)}" placeholder="Morning launch">
+    <label>Start time</label><input type="time" id="rt" value="${r.time}">
+    <label>Days</label><div class="days">${DAYS.map((d, i) => `<label><input type="checkbox" class="rd" value="${i}" ${r.days.includes(i) ? 'checked' : ''}><span>${d}</span></label>`).join('')}</div>
+    <label>Steps (small, concrete, timed)</label><div id="steps"></div>
+    <button type="button" data-act="addStep">+ Add step</button>
+    <div class="row" style="margin-top:16px"><button class="primary grow" data-act="saveRoutine">Save</button><button class="grow" data-act="closeModal">Cancel</button>
+    ${r.id ? `<button class="danger" data-act="delRoutine" data-id="${r.id}">Delete</button>` : ''}</div></div>`;
+  $('#modal').classList.add('show');
+  (r.steps.length ? r.steps : [{ text: '', mins: 5 }]).forEach(addStepRow);
+}
+function saveRoutine() {
+  const id = $('#modal .sheet').dataset.rid, name = $('#rn').value.trim(), time = $('#rt').value;
+  const days = [...document.querySelectorAll('.rd:checked')].map(x => +x.value);
+  const old = S.routines.find(r => r.id === id);
+  const steps = [...document.querySelectorAll('.steprow')].map((row, i) => ({ text: row.querySelector('.st').value.trim(), mins: Math.max(1, +row.querySelector('.sm').value || 1), id: '' })).filter(s => s.text);
+  if (!name || !time || !days.length || !steps.length) return toast('Needs a name, time, at least one day and one step');
+  // keep step ids stable where text matches, so today's progress isn't lost on edit
+  steps.forEach(s => { s.id = old?.steps.find(o => o.text === s.text)?.id || uid(); });
+  if (old) Object.assign(old, { name, time, days, steps }); else S.routines.push({ id: uid(), name, time, days, steps });
+  S.fired.keys = {}; save(); $('#modal').classList.remove('show'); render();
+}
+
+/* ---------- main loop ---------- */
+let lastMin = -1, lastDay = today();
+function tick() {
+  checkAlarms(); updateNow(); updateRun();
+  const m = new Date().getMinutes(), typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
+  if ((m !== lastMin || lastDay !== today()) && !typing && !run && !alarmCur && !$('#modal').classList.contains('show')) {
+    if (view === 'today') render();
+    lastMin = m; lastDay = today();
+  }
+}
+/* ---------- installable app: offline cache + keep screen awake ---------- */
+let swReg = null, wake = null;
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => { });
+}
+async function keepAwake() {
+  try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wake = await navigator.wakeLock.request('screen'); } catch (e) { }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { keepAwake(); tick(); } });
+keepAwake();
+render(); setInterval(tick, 1000); tick();
+</script>
+</body>
+</html>
